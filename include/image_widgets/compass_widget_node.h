@@ -7,6 +7,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 //#include <opencv/cv.h>
 //#include <opencv2/imgcodecs.hpp>
@@ -22,23 +23,9 @@ namespace image_widgets
   using namespace cv;
 
 
-  // thanks to opencv_cam
-  std::string mat_type2encoding(int mat_type)
-  {
-    switch (mat_type)
-    {
-      case CV_8UC1:
-        return "mono8";
-      case CV_8UC3:
-        return "bgr8";
-      case CV_16SC1:
-        return "mono16";
-      case CV_8UC4:
-        return "rgba8";
-      default:
-        throw std::runtime_error("unsupported encoding type");
-    }
-  }
+  Mat draw_dial(Mat foreground_img, Mat background_img, float theta);
+  Mat alpha_blending(Mat foreground_img, Mat background_img);
+  Mat rotate_image_middle(Mat img_src, float angle);
 
   class CompassWidget : public rclcpp::Node
   {

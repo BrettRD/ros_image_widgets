@@ -32,6 +32,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -46,6 +47,7 @@ ament_target_dependencies(
   geometry_msgs
   sensor_msgs
   OpenCV
+  cv_bridge
   )
 
 

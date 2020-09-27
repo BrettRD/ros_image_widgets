@@ -20,7 +20,8 @@ namespace image_widgets
 
     for(std::string img_path : img_paths)
     {
-      Mat layer_img = imread(img_path, CV_32FC4);
+      Mat layer_img = imread(img_path, CV_8UC4);  //prefer 8b png
+      layer_img.convertTo(layer_img, CV_32FC4, 1/255.0);  //convert to float with range 1-0
 
       // check the sizes of the images
       if((layer_img.rows == 0) || (layer_img.cols == 0)){
@@ -32,15 +33,12 @@ namespace image_widgets
       double min, max;
       std::vector<Mat> layer_channels(4);
       split(layer_img, layer_channels);
-      layer_channels[3] = layer_channels[3] / 255.0;
-      merge(layer_channels, layer_img);
-
+      
       Mat layer_alpha = layer_channels[3];
       minMaxLoc(layer_alpha, &min, &max);
       if(min<0) RCLCPP_WARN(this->get_logger(), "layer from '%s' has alpha channel < 0", img_path.c_str());
       if(max>1) RCLCPP_WARN(this->get_logger(), "layer from '%s' has alpha channel > 1", img_path.c_str());
 
-      // XXX should crash out on the above checks
       img_layers.push_back(layer_img);
     }
 
@@ -52,31 +50,47 @@ namespace image_widgets
 
   void CompassWidget::render_callback(const geometry_msgs::msg::Twist::SharedPtr twist_msg)
   {
-    // XXX check 'new' for style
-    sensor_msgs::msg::Image::UniquePtr image_msg(new sensor_msgs::msg::Image());
-
-    RCLCPP_INFO(this->get_logger(), "Publishing");
-
     // XXX think about a mixer table with translations
-    float theta = twist_msg->angular.z;
+    // XXX deal with foreground items that are smaller than the background
+    // XXX use stamped message and carry the stamp forward
 
     //friendly names for the layers
+    float theta = twist_msg->angular.z;
     Mat background_img = img_layers[0];
     Mat foreground_img = img_layers[1];
+    Mat output_img = draw_dial(foreground_img, background_img, theta);
 
-    // compute a transformation for the foreground image
-    Mat foreground_rot;
-    Point2f pc(foreground_img.cols/2., foreground_img.rows/2.);
-    Mat r = getRotationMatrix2D(pc, theta, 1.0);
-    warpAffine(foreground_img, foreground_rot, r, background_img.size());
-    // XXX deal with foreground items that are smaller than the background
 
+    output_img.convertTo(output_img, CV_8UC4, 255.0);
+
+    sensor_msgs::msg::Image image_msg; // >> message to be sent
+    cv_bridge::CvImage img_bridge = cv_bridge::CvImage(std_msgs::msg::Header(), sensor_msgs::image_encodings::RGBA8, output_img);
+    img_bridge.toImageMsg(image_msg); // from cv_bridge to sensor_msgs::Image
+
+    image_msg.header.stamp = now();
+    image_msg.header.frame_id = frame_id;
+
+    publisher_->publish(image_msg);
+    //publisher_->publish(img_bridge.toImageMsg());
+  }
+
+  Mat draw_dial(Mat foreground_img, Mat background_img, float theta)
+  {
+    Mat foreground_rot = rotate_image_middle(foreground_img, theta);
+    Mat output_img = alpha_blending(foreground_rot, background_img);
+    return output_img;
+  }
+
+
+  Mat alpha_blending(Mat foreground_img, Mat background_img)
+  {
     // split the images into planes
     std::vector<Mat> bg_ch(4);
     std::vector<Mat> fg_ch(4);
     std::vector<Mat> out_ch(4);
+
     split(background_img, bg_ch);
-    split(foreground_rot, fg_ch);
+    split(foreground_img, fg_ch);
 
     Mat bg_alpha = bg_ch[3];
     Mat fg_alpha = fg_ch[3];
@@ -92,29 +106,21 @@ namespace image_widgets
     }
     out_ch[3] = fg_alpha + ((1.0-fg_alpha).mul(bg_alpha));
     merge(out_ch, output_img); // not necessary? the above channelwise ops should be in-place
-
-    // XXX use stamped twist message and carry the stamp forward
-    auto stamp = now();
-    //auto stamp = twist_msg->header.stamp;
-    
-    // Convert OpenCV Mat to ROS Image
-    image_msg->header.stamp = stamp;
-    image_msg->header.frame_id = frame_id;
-    image_msg->height = output_img.rows;
-    image_msg->width = output_img.cols;
-    image_msg->encoding = mat_type2encoding(output_img.type());
-    image_msg->is_bigendian = false;
-    image_msg->step = static_cast<sensor_msgs::msg::Image::_step_type>(output_img.step);
-    image_msg->data.assign(output_img.datastart, output_img.dataend);
-
-    // Publish
-
-    publisher_->publish(std::move(image_msg));
+    return output_img;
   }
 
+  Mat rotate_image_middle(Mat img_src, float angle)
+  {
+    Mat img_dst;
+    Point2f rot_axis(img_src.cols/2., img_src.rows/2.);
+    Mat r = getRotationMatrix2D(rot_axis, angle, 1.0);
+    warpAffine(img_src, img_dst, r, img_src.size());
+    return img_dst;
+  }
+
+
+
 } //namespace image_widgets
-
-
 
 int main(int argc, char *argv[]) {
     rclcpp::init(argc, argv);
@@ -123,3 +129,4 @@ int main(int argc, char *argv[]) {
     rclcpp::shutdown();
     return 0;
 }
+
