@@ -28,16 +28,6 @@ namespace image_widgets
         RCLCPP_ERROR(this->get_logger(), "layer from '%s' is %dx%dpx", img_path.c_str(), layer_img.rows, layer_img.cols);
         return;
       }
-      
-      // check the alpha channel is within 0-1
-      double min, max;
-      std::vector<Mat> layer_channels(4);
-      split(layer_img, layer_channels);
-      
-      Mat layer_alpha = layer_channels[3];
-      minMaxLoc(layer_alpha, &min, &max);
-      if(min<0) RCLCPP_WARN(this->get_logger(), "layer from '%s' has alpha channel < 0", img_path.c_str());
-      if(max>1) RCLCPP_WARN(this->get_logger(), "layer from '%s' has alpha channel > 1", img_path.c_str());
 
       img_layers.push_back(layer_img);
     }
