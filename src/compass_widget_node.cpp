@@ -10,26 +10,24 @@ namespace image_widgets
 
   CompassWidget::CompassWidget(const rclcpp::NodeOptions &options) :
     Node("compass_widget", options),
-    param_background_source("images/compass_background.png"),
-    param_foreground_source("images/compass_needle.png")
+    img_paths({"images/compass_background.png", "images/compass_needle.png"}),
+    frame_id("compass_widget")
   {
 
-    this->declare_parameter("background_source", param_background_source);
-    this->declare_parameter("foreground_source", param_foreground_source);
-    this->get_parameter("background_source", param_background_source);
-    this->get_parameter("foreground_source", param_foreground_source);
+    this->declare_parameter("img_paths", img_paths);
+    this->get_parameter("img_paths", img_paths);
+    this->get_parameter("frame_id", frame_id);
 
-    
-    std::vector<std::string> img_paths({param_background_source, param_foreground_source});
-    std::vector<Mat> img_layers;
     for(std::string img_path : img_paths)
     {
       Mat layer_img = imread(img_path, CV_32FC4);
 
       // check the sizes of the images
-      if(layer_img.rows == 0) RCLCPP_ERROR(this->get_logger(), "rows == 0");
-      if(layer_img.cols == 0) RCLCPP_ERROR(this->get_logger(), "cols == 0");
-
+      if((layer_img.rows == 0) || (layer_img.cols == 0)){
+        RCLCPP_ERROR(this->get_logger(), "layer from '%s' is %dx%dpx", img_path.c_str(), layer_img.rows, layer_img.cols);
+        return;
+      }
+      
       // check the alpha channel is within 0-1
       double min, max;
       std::vector<Mat> layer_channels(4);
@@ -39,14 +37,13 @@ namespace image_widgets
 
       Mat layer_alpha = layer_channels[3];
       minMaxLoc(layer_alpha, &min, &max);
-      if(min<0) RCLCPP_ERROR(this->get_logger(), "alpha channel < 0 in '%s'", img_path.c_str());
-      if(max>1) RCLCPP_ERROR(this->get_logger(), "alpha channel > 1 in '%s'", img_path.c_str());
+      if(min<0) RCLCPP_WARN(this->get_logger(), "layer from '%s' has alpha channel < 0", img_path.c_str());
+      if(max>1) RCLCPP_WARN(this->get_logger(), "layer from '%s' has alpha channel > 1", img_path.c_str());
 
       // XXX should crash out on the above checks
       img_layers.push_back(layer_img);
     }
-    background_img = img_layers[0];
-    foreground_img = img_layers[1];
+
 
     publisher_ = this->create_publisher<sensor_msgs::msg::Image>("compass_image_raw", 2);
     subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
@@ -62,6 +59,10 @@ namespace image_widgets
 
     // XXX think about a mixer table with translations
     float theta = twist_msg->angular.z;
+
+    //friendly names for the layers
+    Mat background_img = img_layers[0];
+    Mat foreground_img = img_layers[1];
 
     // compute a transformation for the foreground image
     Mat foreground_rot;
@@ -98,7 +99,7 @@ namespace image_widgets
     
     // Convert OpenCV Mat to ROS Image
     image_msg->header.stamp = stamp;
-    image_msg->header.frame_id = "compass"; //XXX add to config
+    image_msg->header.frame_id = frame_id;
     image_msg->height = output_img.rows;
     image_msg->width = output_img.cols;
     image_msg->encoding = mat_type2encoding(output_img.type());

@@ -52,13 +52,9 @@ namespace image_widgets
       rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;
       rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
 
-
-      // XXX restructure this for multiple layers
-      std::string param_background_source;
-      std::string param_foreground_source;
-      Mat background_img;
-      Mat foreground_img;
-
+      std::vector<std::string> img_paths;
+      std::vector<Mat> img_layers;
+      std::string frame_id;
   };
 
 } // namespace image_widgets
