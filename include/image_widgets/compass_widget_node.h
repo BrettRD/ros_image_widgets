@@ -22,8 +22,6 @@ namespace image_widgets
 {
   using namespace cv;
 
-
-  Mat draw_dial(Mat foreground_img, Mat background_img, float theta);
   Mat alpha_blending(Mat foreground_img, Mat background_img);
   Mat rotate_image_middle(Mat img_src, float angle);
 

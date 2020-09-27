@@ -48,8 +48,9 @@ namespace image_widgets
     float theta = twist_msg->angular.z;
     Mat background_img = img_layers[0];
     Mat foreground_img = img_layers[1];
-    Mat output_img = draw_dial(foreground_img, background_img, theta);
 
+    Mat foreground_rot = rotate_image_middle(foreground_img, theta);
+    Mat output_img = alpha_blending(foreground_rot, background_img);
 
     output_img.convertTo(output_img, CV_8UC4, 255.0);
 
@@ -62,13 +63,6 @@ namespace image_widgets
 
     publisher_->publish(image_msg);
     //publisher_->publish(img_bridge.toImageMsg());
-  }
-
-  Mat draw_dial(Mat foreground_img, Mat background_img, float theta)
-  {
-    Mat foreground_rot = rotate_image_middle(foreground_img, theta);
-    Mat output_img = alpha_blending(foreground_rot, background_img);
-    return output_img;
   }
 
 
