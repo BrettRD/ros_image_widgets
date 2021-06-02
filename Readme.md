@@ -5,9 +5,10 @@ use jinja2 to create complex strings from arbitrary message types
 ```ros2 topic pub /raw_msg std_msgs/msg/String data:\ \'world\'\```
 
 # "image_widgets" though?
-image_widgets was originally intended for creating animated overlays over live camera topics in telepresence systems.
-SVG became the preferred parametric image format, and gstreamer was better video compositing, and jinja2 was used for loading parameters, leaving this package the job of feeding ROS2 messages to a templater, and nothing else.
+image_widgets was originally intended for creating animated overlays over live camera topics in telepresence systems.  
+SVG became the preferred parametric image format, jinja2 was used for loading parameters, and gstreamer was better for video compositing, leaving this package the job of feeding ROS2 messages to a templater, and nothing else.
 
+Later enhancements might include a node that renders SVGs without a gstreamer dependency
 
 # making pictures
 ```gst-launch-1.0 --gst-plugin-path=install/gst_bridge/lib/gst_bridge/ rostextsrc topic=string_msg ! rsvgdec ! videoconvert ! rosimagesink```  
