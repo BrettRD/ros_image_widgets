@@ -41,23 +41,23 @@ find_package(cv_bridge REQUIRED)
 
 include_directories(include)
 
-add_executable(compass_widget_node src/compass_widget_node.cpp)
-ament_target_dependencies(
-  compass_widget_node
-  rclcpp
-  std_msgs
-  geometry_msgs
-  sensor_msgs
-  OpenCV
-  cv_bridge
-  )
+#add_executable(compass_widget_node src/compass_widget_node.cpp)
+#ament_target_dependencies(
+#  compass_widget_node
+#  rclcpp
+#  std_msgs
+#  geometry_msgs
+#  sensor_msgs
+#  OpenCV
+#  cv_bridge
+#  )
 
 
 # Install Cpp executables
-install(TARGETS
-  compass_widget_node
-  EXPORT export_${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME})
+#install(TARGETS
+#  compass_widget_node
+#  EXPORT export_${PROJECT_NAME}
+#  DESTINATION lib/${PROJECT_NAME})
 
 
 # Install Python modules
@@ -67,6 +67,13 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/jinjaturtle.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+#install config files
+install(DIRECTORY
+  config
+  launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
