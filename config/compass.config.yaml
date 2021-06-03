@@ -1,0 +1,8 @@
+# image widget that draws a compass according to the Z rotation of a twist message
+# see compass.svg.j2 for message unpacking
+
+compass_widget_node:
+  ros__parameters:
+    message_module: "geometry_msgs.msg"
+    message_class: "Twist"
+    template_file: "images/compass.svg.j2"

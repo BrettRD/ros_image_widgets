@@ -1,0 +1,28 @@
+# image widget that draws a compass according to the Z rotation of a twist message
+# see compass.svg.j2 for message unpacking
+/**:
+  ros__parameters:
+    message_module: "geometry_msgs.msg"
+    message_class: "Twist"
+    template_params:
+      width: 150
+      height: 100
+      misc:
+        foo: "some"
+        bar: None
+        baz: 
+          - "less"
+          - "more"
+
+    template_data: |
+      <svg baz[0]={{params["misc.baz"][0]}} baz[1]={{params["misc.baz"][1]}} foo={{params["misc.foo"]}} viewBox="-40 0 {{params["width"]}} {{params["height"]}}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <g fill="grey"
+          transform="rotate({{msg.angular.z -10}} 50 100)
+                      translate(-36 45.5)
+                      skewX(40)
+                      scale(1 0.5)">
+          <path id="heart" d="M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z" />
+        </g>
+        <use xlink:href="#heart" fill="none" stroke="red"/>
+      </svg>
+
