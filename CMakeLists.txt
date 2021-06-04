@@ -73,6 +73,7 @@ install(PROGRAMS
 install(DIRECTORY
   config
   launch
+  images
   DESTINATION share/${PROJECT_NAME}
 )
 

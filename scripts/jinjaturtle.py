@@ -8,6 +8,7 @@ from importlib import import_module
 from jinja2 import Template
 
 import rclpy
+import os
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -18,12 +19,15 @@ from rcl_interfaces.msg import SetParametersResult
 from rclpy.exceptions import ParameterNotDeclaredException
 from rclpy.exceptions import ParameterAlreadyDeclaredException
 
+from ament_index_python.packages import get_package_share_directory, get_package_prefix
+
 
 
 class Jinjaturtle(Node):
     template_data = 'templated: {{msg.data}}'
     template_params = {}
     template = Template(template_data)
+    template_file_path = os.path.join(get_package_share_directory('image_widgets'), 'images')
     message_module_name = 'std_msgs.msg'
     message_class_name = 'String'
     message_class = getattr(import_module(message_module_name), message_class_name)
@@ -34,8 +38,8 @@ class Jinjaturtle(Node):
         automatically_declare_parameters_from_overrides=True)
         #allow_undeclared_parameters=True)
 
-        self.get_logger().info(str(self.get_parameters_by_prefix('template_params')))
-
+        #self.get_logger().info(str(self.get_parameters_by_prefix('template_params')))
+        #self.get_logger().info(  str(os.listdir(self.template_file_path)) )
 
         param_list = [
             (   'message_module', self.message_module_name,
@@ -128,7 +132,10 @@ class Jinjaturtle(Node):
                 if parameter.type_ == Parameter.Type.STRING:
                     if(parameter.value != ''):
                         try:
-                            with open(parameter.value) as j2_file_:
+                            filename = os.path.join(self.template_file_path, parameter.value)
+                            self.get_logger().info(f"loading filename {filename}")
+
+                            with open(filename) as j2_file_:
                                 self.template_data = j2_file_.read()
                                 self.template = Template(self.template_data)
                                 self.get_logger().info("loaded template file")
