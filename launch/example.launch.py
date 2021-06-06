@@ -18,7 +18,7 @@ def generate_launch_description():
             config_filename, launch.substitutions.TextSubstitution(text='.config.yaml')]),
 
         launch_ros.actions.Node(
-            name='compass_widget_node',
+            name='jinjaturtle',
             package='image_widgets',
             executable='jinjaturtle.py',
             parameters=[config_filepath]

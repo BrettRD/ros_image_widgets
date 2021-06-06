@@ -35,7 +35,7 @@
 
     <g  
       id="external"
-      transform="rotate({{params["ext_gain"] * msg.angular.x}} 4442.5 4442.5)"
+      transform="rotate({{params["roll_gain"] * msg.angular.x}} 4442.5 4442.5)"
     >
       <path
         class="fil1 str0"
@@ -45,7 +45,7 @@
 
     <g
       id="internal"
-      transform="rotate({{params["int_gain"] * msg.angular.x}} 4442.5 4442.5)"
+      transform="rotate({{params["roll_gain_ext"] * msg.angular.x}} 4442.5 4442.5)"
     >
       <path
         class="fil2 str1"

@@ -1,0 +1,16 @@
+# image widget that draws an artificial horizon according to the X rotation of a twist message
+# uses params["ext_gain"] to select the horizon
+# uses params["ext_gain"] to select the craft
+# uses params["size"] to scale the image
+
+# uses msg.angular.x to perform rotations
+
+/**:
+  ros__parameters:
+    message_module: "geometry_msgs.msg"
+    message_class: "Twist"
+    template_params:
+      size: 200
+      pitch_gain: 1.0
+      roll_gain: 1.0
+    template_file: "attitude_indicator.svg.j2"

@@ -11,6 +11,6 @@ compass_widget_node:
     message_class: "Twist"
     template_params:
       size: 200
-      ext_gain: 0.1
-      int_gain: -0.9
-    template_file: "artificial-horizon.svg.j2"
+      roll_gain_ext: 0.1
+      roll_gain: -0.9
+    template_file: "artificial_horizon.svg.j2"
